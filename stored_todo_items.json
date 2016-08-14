@@ -1,0 +1,22 @@
+[
+  {
+    "description": "wake up in the morning",
+    "completed": true
+  },
+  {
+    "description": "be fresh",
+    "completed": true
+  },
+  {
+    "description": "go downstairs",
+    "completed": true
+  },
+  {
+    "description": "have my bowl",
+    "completed": false
+  },
+  {
+    "description": "have cereal",
+    "completed": false
+  }
+]

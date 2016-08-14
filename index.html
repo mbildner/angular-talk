@@ -1,0 +1,107 @@
+<html ng-app="FridayApp">
+  <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script>
+      angular.module('FridayApp', []);
+
+      angular.module('FridayApp').controller('ToDoController', function($scope, $http){
+
+        $http.get('http://localhost:8000/stored_todo_items.json').then(function(response) {
+          response.data.forEach(function(task){
+            $scope.tasks.push(task);
+          });
+        });
+
+        $scope.$watch('newTask.description', function(newDescriptionText){
+          $scope.validState = newDescriptionText && newDescriptionText.length;
+        });
+
+        $scope.$on('onSeatChosen', function(event, data){
+          $scope.todoListEnabled = data.seat !== 'driver'
+        });
+      });
+
+      angular.module('FridayApp').controller('SeatPickerController', function($scope, $rootScope){
+        $scope.$watch('chosenSeat', function(newChosenSeat) {
+          if (newChosenSeat) {
+            $rootScope.$broadcast('onSeatChosen', { seat: newChosenSeat });
+          }
+        });
+      });
+
+      function FakeExternalIntegration (){
+        var fakeMessages = [
+          {sender: 'Moshe', text: 'I got this, you got this' },
+          {sender: 'Moshe', text: 'Yesterday was Thursday!!!' },
+          {sender: 'Moshe', text: 'We so excited!!!!!'},
+          {sender: 'Moshe', text: 'We we so excited'},
+          {sender: 'Moshe', text: 'Tomorrow is Saturday and Sunday comes afterwards!!!'},
+          {sender: 'Moshe', text: 'I don\'t want this weekend to end!'}
+        ];
+
+        function randomMessage (){
+          return fakeMessages[Math.round(Math.random() * fakeMessages.length - 1)];
+        }
+
+        var that = this;
+        that.onMessage = function(){};
+
+        window.setInterval(function(){
+          that.onMessage(randomMessage());
+        }, 5000);
+      }
+
+      angular.module('FridayApp').controller('TextMessageController', function($scope, $timeout){
+        var awesomeExternalIntegration = new FakeExternalIntegration();
+
+        awesomeExternalIntegration.onMessage = function(textMessage){
+          $scope.$apply(function(){
+            $scope.shouldShowMessage = true;
+
+            $timeout(function(){
+              $scope.shouldShowMessage = false;
+            }, 2000);
+
+            $scope.message = textMessage;
+          });
+        };
+
+      });
+    </script>
+  </head>
+ <body ng-controller="TextMessageController" ng-init="shouldShowMessage=false">
+   <div ng-show="shouldShowMessage">
+     <h3>New Message:</h3>
+     <h2>{{ message.sender }}: {{ message.text }}</h2>
+   </div>
+  <div ng-controller="SeatPickerController" ng-init="chosenSeat='Front Passenger'">
+    <div class="btn-group" role="group">
+      <button ng-click="chosenSeat='driver'" class="btn btn-default" ng-disabled="chosenSeat=='driver'">Driver</button>
+      <button ng-click="chosenSeat='Front Passenger'" class="btn btn-default" ng-disabled="chosenSeat=='Front Passenger'">Front Passenger</button>
+    </div>
+    <div class="btn-group" role="group">
+      <button ng-click="chosenSeat='Rear Left'" class="btn btn-default" ng-disabled="chosenSeat=='Rear Left'">Rear Left</button>
+      <button ng-click="chosenSeat='Rear Right'" class="btn btn-default" ng-disabled="chosenSeat=='Rear Right'">Rear Right</button>
+    </div>
+  </div>
+
+  <div ng-controller="ToDoController" ng-init="tasks=[];newTask={};todoListEnabled=true">
+    <div ng-show="!todoListEnabled">todo list disabled while you drive</div>
+    <div ng-show="todoListEnabled" >
+      <div ng-repeat="task in tasks track by $index" ng-click="task.completed=!task.completed">
+        <div ng-if="task.completed">
+          <s>{{ task.description }}</s>
+        </div>
+        <div ng-if="!task.completed">{{ task.description }}</div>
+      </div>
+      <input ng-model="newTask.description" />
+      <button
+        class="btn"
+        ng-click="tasks.push({completed: false, description: newTask.description});newTask.description=''"
+        ng-disabled="newTask.description.length<1"
+      >Add Task</button>
+    </div>
+  </div>
+ </body>
+</html>
