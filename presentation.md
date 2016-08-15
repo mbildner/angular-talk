@@ -95,4 +95,35 @@ Our directives will follow a pattern called "Reactive Directives".
 
 The first iteration of the app will not be able to handle any user interaction (this is on purpose)
 
-We're going to make a chat app
+Now we have an incredibly *stupid* UI layer written in directives.
+
+Note the following pattern:
+1. there is exactly one point of entry for the UI layer
+    - application-root retrieves data from the service layer
+2. the point of entry wraps data access to its children in method calls
+    - this is critical to this pattern
+    - this is where an application re-render will be triggered.
+    - ( talk through how this works? )
+3. every directive receives exactly the data it needs to render itself
+4. for collections of data use ng-repeat.
+    - it's one of angular's strongest tools
+    - the wrapper renders whatever container view is needed
+    - delegates rendering the collection elements to the appropriate directive
+5. every directive takes the same 4 keys, with an optional fifth
+```JavaScript
+  angular.module('SomeModule')
+    .directive('someDirective', function(){
+      return {
+        restrict: 'E',
+        replace: true,
+        template: '<some-template></some-template>'
+      };
+    })
+
+```
+
+
+
+
+
+
