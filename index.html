@@ -6,33 +6,12 @@
   </head>
   <body>
     <application-root></application-root>
-
-      <application-state-manager></application-state-manager>
-    <!--
-    -->
+    <application-state-manager></application-state-manager>
   </body>
   <script>
-    angular.module('TechTalkMessageBoard', [])
-    .directive('applicationStateManager', function(Store){
-      return {
-        restrict: 'E',
-        replace: true,
-        template: '' +
-          '<div>' +
-          '<pre>{{ reflectedApplicationState() | json }}</pre>' +
-          '<textarea rows="40" cols="50" ng-model="totalState" ng-change="appStateChanged()"/>' +
-          '</div>',
-        link: function(scope){
-          scope.reflectedApplicationState = function() { return Store.applicationState; };
-
-          scope.totalState = JSON.stringify(Store.applicationState);
-
-          scope.appStateChanged = function(){
-            Store.applicationState = JSON.parse(scope.totalState);
-          };
-        }
-      };
-    })
+    angular.module('TechTalkMessageBoard', [
+      //'StateManagementToolKit'
+    ])
     .service('Store', function(){
       this.applicationState = {
         messages: [
@@ -133,6 +112,28 @@
          '<div class="input-group input-group-lg">'+
          '  <input type="text" class="form-control" placeholder="message containing...">'+
          '</div>'
+      };
+    });
+
+    angular.module('StateManagementToolKit', [])
+    .directive('applicationStateManager', function(Store){
+      return {
+        restrict: 'E',
+        replace: true,
+        template: '' +
+          '<div>' +
+          '<pre>{{ reflectedApplicationState() | json }}</pre>' +
+          '<textarea rows="40" cols="50" ng-model="totalState" ng-change="appStateChanged()"/>' +
+          '</div>',
+        link: function(scope){
+          scope.reflectedApplicationState = function() { return Store.applicationState; };
+
+          scope.totalState = JSON.stringify(Store.applicationState);
+
+          scope.appStateChanged = function(){
+            Store.applicationState = JSON.parse(scope.totalState);
+          };
+        }
       };
     })
   </script>
