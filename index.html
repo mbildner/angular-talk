@@ -1,107 +1,115 @@
-<html ng-app="FridayApp">
+<html ng-app="TechTalkMessageBoard">
   <head>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <script>
-      angular.module('FridayApp', []);
-
-      angular.module('FridayApp').controller('ToDoController', function($scope, $http){
-
-        $http.get('http://localhost:8000/stored_todo_items.json').then(function(response) {
-          response.data.forEach(function(task){
-            $scope.tasks.push(task);
-          });
-        });
-
-        $scope.$watch('newTask.description', function(newDescriptionText){
-          $scope.validState = newDescriptionText && newDescriptionText.length;
-        });
-
-        $scope.$on('onSeatChosen', function(event, data){
-          $scope.todoListEnabled = data.seat !== 'driver'
-        });
-      });
-
-      angular.module('FridayApp').controller('SeatPickerController', function($scope, $rootScope){
-        $scope.$watch('chosenSeat', function(newChosenSeat) {
-          if (newChosenSeat) {
-            $rootScope.$broadcast('onSeatChosen', { seat: newChosenSeat });
-          }
-        });
-      });
-
-      function FakeExternalIntegration (){
-        var fakeMessages = [
-          {sender: 'Moshe', text: 'I got this, you got this' },
-          {sender: 'Moshe', text: 'Yesterday was Thursday!!!' },
-          {sender: 'Moshe', text: 'We so excited!!!!!'},
-          {sender: 'Moshe', text: 'We we so excited'},
-          {sender: 'Moshe', text: 'Tomorrow is Saturday and Sunday comes afterwards!!!'},
-          {sender: 'Moshe', text: 'I don\'t want this weekend to end!'}
-        ];
-
-        function randomMessage (){
-          return fakeMessages[Math.round(Math.random() * fakeMessages.length - 1)];
-        }
-
-        var that = this;
-        that.onMessage = function(){};
-
-        window.setInterval(function(){
-          that.onMessage(randomMessage());
-        }, 5000);
-      }
-
-      angular.module('FridayApp').controller('TextMessageController', function($scope, $timeout){
-        var awesomeExternalIntegration = new FakeExternalIntegration();
-
-        awesomeExternalIntegration.onMessage = function(textMessage){
-          $scope.$apply(function(){
-            $scope.shouldShowMessage = true;
-
-            $timeout(function(){
-              $scope.shouldShowMessage = false;
-            }, 2000);
-
-            $scope.message = textMessage;
-          });
-        };
-
-      });
-    </script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/css/bootstrap.min.css" integrity="sha384-MIwDKRSSImVFAZCVLtU0LMDdON6KVCrZHyVQQj6e8wIEJkW4tvwqXrbMIya1vriY" crossorigin="anonymous">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css">
   </head>
- <body ng-controller="TextMessageController" ng-init="shouldShowMessage=false">
-   <div ng-show="shouldShowMessage">
-     <h3>New Message:</h3>
-     <h2>{{ message.sender }}: {{ message.text }}</h2>
-   </div>
-  <div ng-controller="SeatPickerController" ng-init="chosenSeat='Front Passenger'">
-    <div class="btn-group" role="group">
-      <button ng-click="chosenSeat='driver'" class="btn btn-default" ng-disabled="chosenSeat=='driver'">Driver</button>
-      <button ng-click="chosenSeat='Front Passenger'" class="btn btn-default" ng-disabled="chosenSeat=='Front Passenger'">Front Passenger</button>
-    </div>
-    <div class="btn-group" role="group">
-      <button ng-click="chosenSeat='Rear Left'" class="btn btn-default" ng-disabled="chosenSeat=='Rear Left'">Rear Left</button>
-      <button ng-click="chosenSeat='Rear Right'" class="btn btn-default" ng-disabled="chosenSeat=='Rear Right'">Rear Right</button>
-    </div>
-  </div>
+  <body>
+    <application-root></application-root>
+  </body>
+  <script>
+    angular.module('TechTalkMessageBoard', [])
+    .service('MessageService', function($q){
+      this.getMessagesFromServer = function(){
+        var deferred = $q.defer();
+        deferred.resolve([
+          { sender: 'User1', subject: 'Message 1', body: "This is the first message for sure" },
+          { sender: 'User2', subject: 'Message 2', body: "This is the second message for sure" },
+          { sender: 'User1', subject: 'Message 3', body: "I'm still sending you messages!"},
+        ]);
+        return deferred.promise;
+      };
+    })
+    .directive('applicationRoot', function(){
+      return {
+        restrict: 'E',
+        template: ''+
+          '<div><header-bar login-status="loginStatus" current-view="currentView"></header-bar><message-search></message-search><message-list messages="messages"/></message-list></div>',
+        link: function(scope){
+          scope.messages = [
+            { sender: 'User1', subject: 'Message 1', body: "This is the first message for sure" },
+            { sender: 'User2', subject: 'Message 2', body: "This is the second message for sure" },
+            { sender: 'User1', subject: 'Message 3', body: "I'm still sending you messages!"},
+          ];
 
-  <div ng-controller="ToDoController" ng-init="tasks=[];newTask={};todoListEnabled=true">
-    <div ng-show="!todoListEnabled">todo list disabled while you drive</div>
-    <div ng-show="todoListEnabled" >
-      <div ng-repeat="task in tasks track by $index" ng-click="task.completed=!task.completed">
-        <div ng-if="task.completed">
-          <s>{{ task.description }}</s>
-        </div>
-        <div ng-if="!task.completed">{{ task.description }}</div>
-      </div>
-      <input ng-model="newTask.description" />
-      <button
-        class="btn"
-        ng-click="tasks.push({completed: false, description: newTask.description});newTask.description=''"
-        ng-disabled="newTask.description.length<1"
-      >Add Task</button>
-    </div>
-  </div>
- </body>
+          scope.loginStatus = 'Logged In';
+          scope.currentView = 'Messages';
+        }
+      };
+    })
+    .directive('headerBar', function(){
+      return {
+        restrict: 'E',
+        scope: {
+          user: '=',
+          loginStatus: '=',
+          currentView: '='
+        },
+        template: '' +
+          '<nav class="navbar navbar-light bg-faded">'+
+          '  <div class="nav navbar-nav">'+
+          '    <a class="nav-item nav-link active" href="#">Pivotal Messanger <span class="sr-only">(current)</span></a>'+
+          '    <login-link login-status="loginStatus"></login-link>'+
+          '    <message-view-toggle-link current-view="currentView"></message-view-toggle-link>' +
+          '  </div>'+
+          '</nav>',
+        link: function(scope){}
+      };
+    })
+    .directive('loginLink', function(){
+      return {
+        restrict: 'E',
+        scope: { loginStatus: '=' },
+        replace: true,
+        template: '' +
+          '<a class="nav-item nav-link href="#">{{ loginStatus }}</a>',
+      };
+    })
+    .directive('messageViewToggleLink', function(){
+      return {
+        restrict: 'E',
+        scope: { currentView: '=' },
+        replace: true,
+        template: '' +
+          '<a class="nav-item nav-link" href="#">{{ currentView }}</a>'
+      };
+    })
+    .directive('messageList', function(){
+      return {
+        restrict: 'E',
+        scope: { messages: '=' },
+        template: ''+
+          '<ul class="list-group"><message message="message" ng-repeat="message in messages track by $index" /></ul>'
+      };
+    })
+    .directive('message', function(){
+      return {
+        restrict: 'E',
+        scope: { message: '=' },
+        replace: true,
+        template: '' +
+          '<li class="list-group-item"><h5 class="list-group-item-heading">{{ message.subject }}</h5><p class="list-group-item-text"><span>{{ message.body }}</span><span class="pull-lg-right pull-md-right"><reply-button user="message.sender"></reply-button></span></p></li>'
+      };
+    })
+    .directive('replyButton', function(){
+      return {
+        restrict: 'E',
+        scope: { user: '=' },
+        replace: true,
+        template: '' +
+          '<button class="btn btn-default">Reply to {{ user }}</button>'
+      };
+    })
+    .directive('messageSearch', function(){
+      return {
+        restrict: 'E',
+        scope: {},
+        replace: true,
+        template: '' +
+         '<div class="input-group input-group-lg">'+
+         '  <input type="text" class="form-control" placeholder="message containing...">'+
+         '</div>'
+      };
+    })
+  </script>
 </html>
