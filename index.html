@@ -6,34 +6,58 @@
   </head>
   <body>
     <application-root></application-root>
+
+      <application-state-manager></application-state-manager>
+    <!--
+    -->
   </body>
   <script>
     angular.module('TechTalkMessageBoard', [])
-    .service('MessageService', function($q){
-      this.getMessagesFromServer = function(){
-        var deferred = $q.defer();
-        deferred.resolve([
+    .directive('applicationStateManager', function(Store){
+      return {
+        restrict: 'E',
+        replace: true,
+        template: '' +
+          '<div>' +
+          '<pre>{{ reflectedApplicationState() | json }}</pre>' +
+          '<textarea rows="40" cols="50" ng-model="totalState" ng-change="appStateChanged()"/>' +
+          '</div>',
+        link: function(scope){
+          scope.reflectedApplicationState = function() { return Store.applicationState; };
+
+          scope.totalState = JSON.stringify(Store.applicationState);
+
+          scope.appStateChanged = function(){
+            Store.applicationState = JSON.parse(scope.totalState);
+          };
+        }
+      };
+    })
+    .service('Store', function(){
+      this.applicationState = {
+        messages: [
           { sender: 'User1', subject: 'Message 1', body: "This is the first message for sure" },
           { sender: 'User2', subject: 'Message 2', body: "This is the second message for sure" },
           { sender: 'User1', subject: 'Message 3', body: "I'm still sending you messages!"},
-        ]);
-        return deferred.promise;
+        ],
+        loginStatus: 'Logged In',
+        currentView: 'Messages'
       };
     })
-    .directive('applicationRoot', function(){
+    .directive('applicationRoot', function(Store){
       return {
         restrict: 'E',
+        replace: true,
         template: ''+
-          '<div><header-bar login-status="loginStatus" current-view="currentView"></header-bar><message-search></message-search><message-list messages="messages"/></message-list></div>',
+          '<div>' +
+          '  <header-bar login-status="loginStatus()" current-view="currentView()"></header-bar>' +
+          '  <message-search></message-search>' +
+          '  <message-list messages="messages()"/></message-list>' +
+          '</div>',
         link: function(scope){
-          scope.messages = [
-            { sender: 'User1', subject: 'Message 1', body: "This is the first message for sure" },
-            { sender: 'User2', subject: 'Message 2', body: "This is the second message for sure" },
-            { sender: 'User1', subject: 'Message 3', body: "I'm still sending you messages!"},
-          ];
-
-          scope.loginStatus = 'Logged In';
-          scope.currentView = 'Messages';
+          scope.messages = function() { return Store.applicationState.messages };
+          scope.loginStatus = function() { return Store.applicationState.loginStatus };
+          scope.currentView = function() { return Store.applicationState.currentView };
         }
       };
     })
