@@ -40,10 +40,7 @@
     </style>
   </head>
   <body>
-    <div class="container">
-      <application-root></application-root>
-    </div>
-    <application-state-manager></application-state-manager>
+    <application-root></application-root>
   </body>
   <script>
     angular.module('TechTalkMessageBoard', [
@@ -68,7 +65,8 @@
         ],
         loginStatus: 'Logged In',
         currentView: 'Messages',
-        searchText: 'potatoes please'
+        searchText: 'potatoes please',
+        showStateEditor: true
       };
     })
     .directive('applicationRoot', function(Store){
@@ -77,15 +75,23 @@
         replace: true,
         template: ''+
           '<div>' +
-          '  <header-bar login-status="loginStatus()" current-view="currentView()"></header-bar>' +
-          '  <message-search search-text="searchText()"></message-search>' +
-          '  <message-list messages="messages()"/></message-list>' +
-          '</div>',
+          '  <div class="container">' +
+          '    <header-bar' +
+          '        login-status="loginStatus()" ' +
+          '        current-view="currentView()" ' +
+          '        show-state-editor="showStateEditor()" ' +
+          '></header-bar>' +
+          '    <message-search search-text="searchText()"></message-search>' +
+          '    <message-list messages="messages()"/></message-list>' +
+          '  </div>' +
+          '  <application-state-manager></application-state-manager>' +
+          '<div>',
         link: function(scope){
-          scope.messages = function() { return Store.applicationState.messages };
-          scope.loginStatus = function() { return Store.applicationState.loginStatus };
-          scope.currentView = function() { return Store.applicationState.currentView };
-          scope.searchText = function() { return Store.applicationState.searchText };
+          scope.messages = function() {         return Store.applicationState.messages        };
+          scope.loginStatus = function() {      return Store.applicationState.loginStatus     };
+          scope.currentView = function() {      return Store.applicationState.currentView     };
+          scope.searchText = function() {       return Store.applicationState.searchText      };
+          scope.showStateEditor = function() {  return Store.applicationState.showStateEditor };
         }
       };
     })
@@ -95,7 +101,8 @@
         scope: {
           user: '=',
           loginStatus: '=',
-          currentView: '='
+          currentView: '=',
+          showStateEditor: '='
         },
         template: '' +
           '<nav class="navbar navbar-light bg-faded">'+
@@ -103,9 +110,29 @@
           '    <a class="nav-item nav-link active" href="#">Pivotal Messenger <span class="sr-only">(current)</span></a>'+
           '    <login-link login-status="loginStatus"></login-link>'+
           '    <message-view-toggle-link current-view="currentView"></message-view-toggle-link>' +
+          '    <show-state-editor-toggle show-state-editor="showStateEditor"></show-state-editor-toggle>' +
           '  </div>'+
-          '</nav>',
-        link: function(scope){}
+          '</nav>'
+      };
+    })
+    .directive('showStateEditorToggle', function(){
+      return {
+        restrict: 'E',
+        scope: { showStateEditor: '=' },
+        replace: true,
+        template: '' +
+          '<div class="form-inline pull-xs-right">' +
+          '  <button class="btn" ng-class="computedClassesForToggle()">{{ showStateEditorToggleText() }}</button>' +
+          '</div>',
+        link: function(scope) {
+          scope.showStateEditorToggleText = function() {
+            return scope.showStateEditor ? 'Hide State Editor' : 'Show State Editor';
+          };
+
+          scope.computedClassesForToggle = function() {
+            return 'btn-outline-' + (scope.showStateEditor ? 'danger' : 'success');
+          };
+        }
       };
     })
     .directive('loginLink', function(){
@@ -188,7 +215,13 @@
           scope.totalState = JSON.stringify(Store.applicationState);
 
           scope.appStateChanged = function(){
-            Store.applicationState = JSON.parse(scope.totalState);
+            try {
+              var newValue = JSON.parse(scope.totalState);
+              Store.applicationState = newValue;
+            } catch (e) {
+              // throw it away
+            }
+
           };
         }
       };
