@@ -46,7 +46,7 @@
     angular.module('TechTalkMessageBoard', [
       'StateManagementToolKit'
     ])
-    .service('Events', function(){
+    .service('Events', function(Store){
       var search = null;
       this.setSearch = function(searchValue) {
         search = searchValue;
@@ -54,6 +54,10 @@
 
       this.getSearch = function(searchValue) {
         return search;
+      };
+
+      this.onToggleClicked = function() {
+        Store.applicationState.showStateEditor = !Store.applicationState.showStateEditor;
       };
     })
     .service('Store', function(){
@@ -115,14 +119,14 @@
           '</nav>'
       };
     })
-    .directive('showStateEditorToggle', function(){
+    .directive('showStateEditorToggle', function(Events){
       return {
         restrict: 'E',
         scope: { showStateEditor: '=' },
         replace: true,
         template: '' +
           '<div class="form-inline pull-xs-right">' +
-          '  <button class="btn" ng-class="computedClassesForToggle()">{{ showStateEditorToggleText() }}</button>' +
+          '  <button class="btn" ng-click="onToggleClicked()" ng-class="computedClassesForToggle()">{{ showStateEditorToggleText() }}</button>' +
           '</div>',
         link: function(scope) {
           scope.showStateEditorToggleText = function() {
@@ -131,6 +135,10 @@
 
           scope.computedClassesForToggle = function() {
             return 'btn-outline-' + (scope.showStateEditor ? 'danger' : 'success');
+          };
+
+          scope.onToggleClicked = function() {
+            Events.onToggleClicked();
           };
         }
       };
@@ -211,10 +219,9 @@
           '  </div>' +
           '</div>',
         link: function(scope){
-          console.log(scope.showStateEditor)
           scope.reflectedApplicationState = function() { return Store.applicationState; };
 
-          scope.totalState = JSON.stringify(Store.applicationState);
+          scope.totalState = JSON.stringify(scope.reflectedApplicationState());
 
           scope.appStateChanged = function(){
             try {
