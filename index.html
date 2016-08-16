@@ -47,30 +47,43 @@
       'StateManagementToolKit'
     ])
     .service('Events', function(Store){
-      var search = null;
       this.setSearch = function(searchValue) {
-        search = searchValue;
-      };
-
-      this.getSearch = function(searchValue) {
-        return search;
+        Store.applicationState.searchText = searchValue;
       };
 
       this.onToggleClicked = function() {
         Store.applicationState.showStateEditor = !Store.applicationState.showStateEditor;
       };
+
+      this.onMessageSearch = function(proposedState) {
+        Store.applicationState.searchText = proposedState;
+      };
+
+      this.attemptGlobalStateUpdate = function(proposedState){
+        var newState;
+        try {
+          newState = JSON.parse(proposedState);
+        } catch (e) {
+          console.log("failed to parse proposedState, falling back to previous state");
+        }
+
+        if (newState) {
+          Store.applicationState = newState;
+        }
+
+      };
     })
     .service('Store', function(){
       this.applicationState = {
         messages: [
-          { sender: 'User1', subject: 'Message 1', body: "This is the first message for sure" },
+          { sender: 'User1', subject: 'Message 1', body: "This is the best message for sure" },
           { sender: 'User2', subject: 'Message 2', body: "This is the second message for sure" },
           { sender: 'User1', subject: 'Message 3', body: "I'm still sending you messages!"},
         ],
         loginStatus: 'Logged In',
         currentView: 'Messages',
         searchText: 'potatoes please',
-        showStateEditor: true
+        showStateEditor: false
       };
     })
     .directive('applicationRoot', function(Store){
@@ -194,13 +207,19 @@
         replace: true,
         template: '' +
           '<div class="input-group input-group-lg">'+
-          '  <input type="text" class="form-control" placeholder="message containing..." ng-model="searchText">'+
-          '</div>'
+          '  <input type="text" class="form-control" placeholder="message containing..." ng-model="_searchText" ng-model-options="{ getterSetter: true }">'+
+          '</div>',
+        link: function(scope){
+          scope._searchText = function(proposedValue) {
+            Events.onMessageSearch(proposedValue);
+            return scope.searchText;
+          };
+        }
       };
     });
 
     angular.module('StateManagementToolKit', [])
-    .directive('applicationStateManager', function(Store){
+    .directive('applicationStateManager', function(Store, Events){
       return {
         restrict: 'E',
         scope: { showStateEditor: '=' },
@@ -210,27 +229,22 @@
           '  <div class="container">' +
           '     <div class="col-lg-6 col-md-6">' +
           '       <div class="label">State Editor</div>' +
-          '       <textarea rows="40" ng-model="totalState" ng-change="appStateChanged()"/>' +
+          '       <textarea rows="40" ng-model="textAreaValue.value" ng-model-options="{ getterSetter: true }" />' +
           '     </div> ' +
           '     <div class="col-lg-6 col-md-6">' +
           '       <div class="label">State Preview</div>' +
-          '       <pre>{{ reflectedApplicationState() | json }}</pre>' +
+          '       <pre>{{ textAreaValue.value() }}</pre>' +
           '     </div>' +
           '  </div>' +
           '</div>',
-        link: function(scope){
-          scope.reflectedApplicationState = function() { return Store.applicationState; };
-
-          scope.totalState = JSON.stringify(scope.reflectedApplicationState());
-
-          scope.appStateChanged = function(){
-            try {
-              var newValue = JSON.parse(scope.totalState);
-              Store.applicationState = newValue;
-            } catch (e) {
-              // throw it away
+        link: function(scope, element){
+          scope.textAreaValue = {
+            value: function(proposedValue) {
+              if (proposedValue) {
+                Events.attemptGlobalStateUpdate(proposedValue);
+              }
+              return JSON.stringify(Store.applicationState);
             }
-
           };
         }
       };
