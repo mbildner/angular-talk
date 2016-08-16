@@ -5,7 +5,9 @@ angular.module('SearchBar')
     replace: true,
     scope: { searchTerm: '=' },
     template: '' +
-      '<input placeholder="find a movie..." ng-model="searchTermGetSet" ng-model-options="{ getterSetter: true }" />',
+      '<div class="input-group">' +
+        '<input placeholder="find a movie..." ng-model="searchTermGetSet" ng-model-options="{ getterSetter: true }" type="text" class="form-control" />' +
+      '</div>',
     link: function(scope){
       scope.searchTermGetSet = function(_searchTerm){
         if (typeof _searchTerm === 'undefined') return scope.searchTerm;

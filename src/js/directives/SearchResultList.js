@@ -5,8 +5,8 @@ angular.module('SearchBar')
     replace: true,
     scope: { searchResults: '=' },
     template: '' +
-      '<div>' +
+      '<ul class="list-group">' +
       '  <search-result search-result="searchResult" ng-repeat="searchResult in searchResults track by $index"></search-result>' +
-      '</div>',
+      '</ul>',
   };
 });

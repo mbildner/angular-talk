@@ -5,9 +5,9 @@ angular.module('SearchBar')
     replace: true,
     scope: { searchResult: '=' },
     template: '' +
-     '<div>' +
-     '  <movie movie="searchResult"></movie>' +
-     '</div>'
+    '<li class="list-group-item">' +
+      '<movie movie="searchResult"></movie>' +
+    '</li>',
   };
 });
 

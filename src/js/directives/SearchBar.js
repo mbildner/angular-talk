@@ -4,7 +4,7 @@ angular.module('SearchBar')
     restrict: 'E',
     replace: true,
     template: '' +
-      '<div>' +
+      '<div clas="input-group">' +
       '  <search-input search-term="searchTerm()"></search-input>' +
       '  <search-result-list search-results="searchResults()"></search-result-list>' +
       '</div>',
