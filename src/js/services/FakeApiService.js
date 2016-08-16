@@ -508,9 +508,9 @@ angular.module('SearchBar')
 
       $timeout(function(){
         deferred.resolve(movies.filter(function(movie){
-          return searchTerm && movie.title.match(searchTerm);
+          return searchTerm && movie.title.toLowerCase().match(searchTerm);
         }));
-      });
+      }, 2000);
 
       return deferred.promise;
     };
