@@ -104,11 +104,13 @@
           '  <application-state-manager show-state-editor="showStateEditor()"></application-state-manager>' +
           '<div>',
         link: function(scope){
-          scope.messages = function() {         return Store.applicationState.messages        };
-          scope.loginStatus = function() {      return Store.applicationState.loginStatus     };
-          scope.currentView = function() {      return Store.applicationState.currentView     };
-          scope.searchText = function() {       return Store.applicationState.searchText      };
-          scope.showStateEditor = function() {  return Store.applicationState.showStateEditor };
+          scope.messages = function()         {  return Store.applicationState.messages        };
+          scope.loginStatus = function()      {  return Store.applicationState.loginStatus     };
+          scope.currentView = function()      {  return Store.applicationState.currentView     };
+          scope.searchText = function()       {
+            return Store.applicationState.searchText
+          };
+          scope.showStateEditor = function()  {  return Store.applicationState.showStateEditor };
         }
       };
     })
@@ -116,10 +118,10 @@
       return {
         restrict: 'E',
         scope: {
-          user: '=',
-          loginStatus: '=',
-          currentView: '=',
-          showStateEditor: '='
+          user: '<',
+          loginStatus: '<',
+          currentView: '<',
+          showStateEditor: '<'
         },
         template: '' +
           '<nav class="navbar navbar-light bg-faded">'+
@@ -135,7 +137,7 @@
     .directive('showStateEditorToggle', function(Events){
       return {
         restrict: 'E',
-        scope: { showStateEditor: '=' },
+        scope: { showStateEditor: '<' },
         replace: true,
         template: '' +
           '<div class="form-inline pull-xs-right">' +
@@ -159,7 +161,7 @@
     .directive('loginLink', function(){
       return {
         restrict: 'E',
-        scope: { loginStatus: '=' },
+        scope: { loginStatus: '<' },
         replace: true,
         template: '' +
           '<a class="nav-item nav-link href="#">{{ loginStatus }}</a>',
@@ -168,7 +170,7 @@
     .directive('messageViewToggleLink', function(){
       return {
         restrict: 'E',
-        scope: { currentView: '=' },
+        scope: { currentView: '<' },
         replace: true,
         template: '' +
           '<a class="nav-item nav-link" href="#">{{ currentView }}</a>'
@@ -177,7 +179,7 @@
     .directive('messageList', function(){
       return {
         restrict: 'E',
-        scope: { messages: '=' },
+        scope: { messages: '<' },
         template: ''+
           '<ul class="list-group"><message message="message" ng-repeat="message in messages track by $index" /></ul>'
       };
@@ -185,7 +187,7 @@
     .directive('message', function(){
       return {
         restrict: 'E',
-        scope: { message: '=' },
+        scope: { message: '<' },
         replace: true,
         template: '' +
           '<li class="list-group-item"><h5 class="list-group-item-heading">{{ message.subject }}</h5><p class="list-group-item-text"><span>{{ message.body }}</span><span class="pull-lg-right pull-md-right"><reply-button user="message.sender"></reply-button></span></p></li>'
@@ -194,16 +196,16 @@
     .directive('replyButton', function(){
       return {
         restrict: 'E',
-        scope: { user: '=' },
+        scope: { user: '<' },
         replace: true,
         template: '' +
           '<button class="btn btn-default">Reply to {{ user }}</button>'
       };
     })
-    .directive('messageSearch', function(Events){
+    .directive('messageSearch', function(Events, Store){
       return {
         restrict: 'E',
-        scope: { searchText: '=' },
+        scope: { searchText: '<' },
         replace: true,
         template: '' +
           '<div class="input-group input-group-lg">'+
@@ -211,6 +213,9 @@
           '</div>',
         link: function(scope){
           scope._searchText = function(proposedValue) {
+            console.log(typeof proposedValue);
+            if (typeof proposedValue !== 'string') return scope.searchText;
+            if (!proposedValue) return scope.searchText;
             Events.onMessageSearch(proposedValue);
             return scope.searchText;
           };
@@ -222,7 +227,7 @@
     .directive('applicationStateManager', function(Store, Events){
       return {
         restrict: 'E',
-        scope: { showStateEditor: '=' },
+        scope: { showStateEditor: '<' },
         replace: true,
         template: '' +
           '<div ng-show="showStateEditor" class="application-state-manager clearfix">' +
@@ -233,7 +238,7 @@
           '     </div> ' +
           '     <div class="col-lg-6 col-md-6">' +
           '       <div class="label">State Preview</div>' +
-          '       <pre>{{ textAreaValue.value() }}</pre>' +
+          '       <pre>{{ textAreaValue.value() | json }}</pre>' +
           '     </div>' +
           '  </div>' +
           '</div>',
@@ -251,3 +256,4 @@
     })
   </script>
 </html>
+
