@@ -49,6 +49,16 @@
     angular.module('TechTalkMessageBoard', [
       'StateManagementToolKit'
     ])
+    .service('Events', function(){
+      var search = null;
+      this.setSearch = function(searchValue) {
+        search = searchValue;
+      };
+
+      this.getSearch = function(searchValue) {
+        return search;
+      };
+    })
     .service('Store', function(){
       this.applicationState = {
         messages: [
@@ -57,7 +67,8 @@
           { sender: 'User1', subject: 'Message 3', body: "I'm still sending you messages!"},
         ],
         loginStatus: 'Logged In',
-        currentView: 'Messages'
+        currentView: 'Messages',
+        searchText: 'potatoes please'
       };
     })
     .directive('applicationRoot', function(Store){
@@ -67,13 +78,14 @@
         template: ''+
           '<div>' +
           '  <header-bar login-status="loginStatus()" current-view="currentView()"></header-bar>' +
-          '  <message-search></message-search>' +
+          '  <message-search search-text="searchText()"></message-search>' +
           '  <message-list messages="messages()"/></message-list>' +
           '</div>',
         link: function(scope){
           scope.messages = function() { return Store.applicationState.messages };
           scope.loginStatus = function() { return Store.applicationState.loginStatus };
           scope.currentView = function() { return Store.applicationState.currentView };
+          scope.searchText = function() { return Store.applicationState.searchText };
         }
       };
     })
@@ -140,14 +152,14 @@
           '<button class="btn btn-default">Reply to {{ user }}</button>'
       };
     })
-    .directive('messageSearch', function(){
+    .directive('messageSearch', function(Events){
       return {
         restrict: 'E',
-        scope: {},
+        scope: { searchText: '=' },
         replace: true,
         template: '' +
           '<div class="input-group input-group-lg">'+
-          '  <input type="text" class="form-control" placeholder="message containing...">'+
+          '  <input type="text" class="form-control" placeholder="message containing..." ng-model="searchText">'+
           '</div>'
       };
     });
@@ -161,11 +173,11 @@
           '<div class="application-state-manager clearfix">' +
           '<div class="container">' +
           '  <div class="col-lg-6 col-md-6">' +
-          '   <div class="label">Code Editor</div>' +
+          '   <div class="label">State Editor</div>' +
           '   <textarea rows="40" ng-model="totalState" ng-change="appStateChanged()"/>' +
           '  </div> ' +
           '  <div class="col-lg-6 col-md-6">' +
-          '   <div class="label">Code Preview</div>' +
+          '   <div class="label">State Preview</div>' +
           '   <pre>{{ reflectedApplicationState() | json }}</pre>' +
           '  </div>' +
           '</div>' +
