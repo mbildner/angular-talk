@@ -84,7 +84,7 @@
           '    <message-search search-text="searchText()"></message-search>' +
           '    <message-list messages="messages()"/></message-list>' +
           '  </div>' +
-          '  <application-state-manager></application-state-manager>' +
+          '  <application-state-manager show-state-editor="showStateEditor()"></application-state-manager>' +
           '<div>',
         link: function(scope){
           scope.messages = function() {         return Store.applicationState.messages        };
@@ -195,21 +195,23 @@
     .directive('applicationStateManager', function(Store){
       return {
         restrict: 'E',
+        scope: { showStateEditor: '=' },
         replace: true,
         template: '' +
-          '<div class="application-state-manager clearfix">' +
-          '<div class="container">' +
-          '  <div class="col-lg-6 col-md-6">' +
-          '   <div class="label">State Editor</div>' +
-          '   <textarea rows="40" ng-model="totalState" ng-change="appStateChanged()"/>' +
-          '  </div> ' +
-          '  <div class="col-lg-6 col-md-6">' +
-          '   <div class="label">State Preview</div>' +
-          '   <pre>{{ reflectedApplicationState() | json }}</pre>' +
+          '<div ng-show="showStateEditor" class="application-state-manager clearfix">' +
+          '  <div class="container">' +
+          '     <div class="col-lg-6 col-md-6">' +
+          '       <div class="label">State Editor</div>' +
+          '       <textarea rows="40" ng-model="totalState" ng-change="appStateChanged()"/>' +
+          '     </div> ' +
+          '     <div class="col-lg-6 col-md-6">' +
+          '       <div class="label">State Preview</div>' +
+          '       <pre>{{ reflectedApplicationState() | json }}</pre>' +
+          '     </div>' +
           '  </div>' +
-          '</div>' +
           '</div>',
         link: function(scope){
+          console.log(scope.showStateEditor)
           scope.reflectedApplicationState = function() { return Store.applicationState; };
 
           scope.totalState = JSON.stringify(Store.applicationState);
