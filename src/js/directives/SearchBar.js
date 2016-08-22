@@ -6,9 +6,9 @@ angular.module('SearchBar')
     template: '' +
       '<div clas="input-group">' +
       '  <search-input search-term="searchTerm()"></search-input>' +
-      '  <spinner ng-show="listIsLoading()"></spinner>' +
+      '  <spinner ng-if="listIsLoading()"></spinner>' +
       '  <search-result-list ' +
-      '     ng-show="!listIsLoading()"' +
+      '     ng-if="!listIsLoading()"' +
       '     search-results="searchResults()"></search-result-list>' +
       '</div>',
     link: function(scope) {
